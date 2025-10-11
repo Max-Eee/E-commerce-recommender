@@ -54,14 +54,14 @@ const Hero = () => {
   return (
     <div className="bg-white border-b border-ui-border-base relative overflow-hidden">
       <div className="content-container py-16 md:py-24">
-        <div className="max-w-md md:max-w-2xl relative z-10">
+        <div className="max-w-xs sm:max-w-sm md:max-w-xl lg:max-w-2xl relative z-10">
           <p className="text-ui-fg-muted text-sm mb-4 tracking-wide uppercase">
             E-Commerce Recommender
           </p>
-          <h1 className="text-3xl md:text-5xl font-normal text-ui-fg-base mb-4 md:mb-6 leading-tight">
+          <h1 className="text-3xl md:text-5xl font-normal text-ui-fg-base mb-4 md:mb-6 leading-tight max-w-[280px] sm:max-w-sm md:max-w-none">
             Intelligent Product Recommendations
           </h1>
-          <p className="text-sm md:text-lg text-ui-fg-subtle mb-6 md:mb-8 leading-relaxed">
+          <p className="text-sm md:text-lg text-ui-fg-subtle mb-6 md:mb-8 leading-relaxed max-w-[260px] sm:max-w-xs md:max-w-lg">
             Hybrid AI engine with collaborative filtering and personalized explanations.
           </p>
           <div className="hidden md:flex flex-wrap gap-3 text-xs text-ui-fg-muted">

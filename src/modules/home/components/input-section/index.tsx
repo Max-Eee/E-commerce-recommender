@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { saveRecommendationDataToCookie, clearRecommendationData } from "@lib/util/recommendation-cookies"
+import { toast } from "@medusajs/ui"
 
 export default function InputSection({ countryCode }: { countryCode: string }) {
   const router = useRouter()
@@ -29,6 +30,11 @@ export default function InputSection({ countryCode }: { countryCode: string }) {
   const handleSubmit = async () => {
     setError("")
     setLoading(true)
+    
+    // Show toast notification about LLM parsing
+    toast.info("LLM parsing is being used - this might take a minute to convert the data into a valid format", {
+      duration: 5000,
+    })
     
     // Clear previous recommendations before generating new ones
     console.log('\n🔄 Clearing previous recommendations...')
