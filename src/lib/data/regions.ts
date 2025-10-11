@@ -5,7 +5,36 @@ import medusaError from "@lib/util/medusa-error"
 import { HttpTypes } from "@medusajs/types"
 import { getCacheOptions } from "./cookies"
 
+// Mock data for when backend is not available
+const MOCK_REGIONS: HttpTypes.StoreRegion[] = [
+  {
+    id: "mock-region-us",
+    name: "United States",
+    currency_code: "usd",
+    countries: [
+      { id: "us", iso_2: "us", iso_3: "usa", name: "United States", display_name: "United States" },
+      { id: "ca", iso_2: "ca", iso_3: "can", name: "Canada", display_name: "Canada" },
+    ],
+  } as any,
+  {
+    id: "mock-region-eu",
+    name: "Europe",
+    currency_code: "eur",
+    countries: [
+      { id: "gb", iso_2: "gb", iso_3: "gbr", name: "United Kingdom", display_name: "United Kingdom" },
+      { id: "de", iso_2: "de", iso_3: "deu", name: "Germany", display_name: "Germany" },
+      { id: "fr", iso_2: "fr", iso_3: "fra", name: "France", display_name: "France" },
+    ],
+  } as any,
+]
+
+const MOCK_MODE = !process.env.MEDUSA_BACKEND_URL
+
 export const listRegions = async () => {
+  if (MOCK_MODE) {
+    return MOCK_REGIONS
+  }
+
   const next = {
     ...(await getCacheOptions("regions")),
   }
@@ -21,6 +50,10 @@ export const listRegions = async () => {
 }
 
 export const retrieveRegion = async (id: string) => {
+  if (MOCK_MODE) {
+    return MOCK_REGIONS.find(r => r.id === id) || MOCK_REGIONS[0]
+  }
+
   const next = {
     ...(await getCacheOptions(["regions", id].join("-"))),
   }

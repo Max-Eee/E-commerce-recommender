@@ -15,8 +15,14 @@ import {
   setAuthToken,
 } from "./cookies"
 
+const MOCK_MODE = !process.env.MEDUSA_BACKEND_URL
+
 export const retrieveCustomer =
   async (): Promise<HttpTypes.StoreCustomer | null> => {
+    if (MOCK_MODE) {
+      return null // No customer in mock mode
+    }
+
     const authHeaders = await getAuthHeaders()
 
     if (!authHeaders) return null

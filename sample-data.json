@@ -1,0 +1,118 @@
+{
+  "products": [
+    {
+      "id": "laptop-pro-1",
+      "name": "Professional Laptop 15\"",
+      "description": "High-performance laptop with Intel i7 processor, 16GB RAM, and 512GB SSD. Perfect for professionals and content creators.",
+      "category": "Electronics",
+      "price": 1299.99,
+      "tags": ["laptop", "computer", "professional", "intel", "portable"],
+      "image": "https://via.placeholder.com/400x400/3b82f6/ffffff?text=Laptop+Pro"
+    },
+    {
+      "id": "mouse-wireless-1",
+      "name": "Ergonomic Wireless Mouse",
+      "description": "Comfortable wireless mouse with precision tracking and long battery life. Reduces wrist strain during extended use.",
+      "category": "Accessories",
+      "price": 29.99,
+      "tags": ["mouse", "wireless", "ergonomic", "accessory"],
+      "image": "https://via.placeholder.com/400x400/8b5cf6/ffffff?text=Mouse"
+    },
+    {
+      "id": "keyboard-mech-1",
+      "name": "RGB Mechanical Keyboard",
+      "description": "Premium mechanical keyboard with customizable RGB lighting and Cherry MX switches. Perfect for gaming and typing.",
+      "category": "Accessories",
+      "price": 129.99,
+      "tags": ["keyboard", "mechanical", "rgb", "gaming", "cherry-mx"],
+      "image": "https://via.placeholder.com/400x400/ec4899/ffffff?text=Keyboard"
+    },
+    {
+      "id": "monitor-4k-1",
+      "name": "4K Ultra HD Monitor 27\"",
+      "description": "Stunning 4K resolution monitor with HDR support and 144Hz refresh rate. Ideal for gaming and professional work.",
+      "category": "Electronics",
+      "price": 599.99,
+      "tags": ["monitor", "4k", "display", "hdr", "gaming"],
+      "image": "https://via.placeholder.com/400x400/10b981/ffffff?text=Monitor+4K"
+    },
+    {
+      "id": "webcam-hd-1",
+      "name": "HD Webcam with Microphone",
+      "description": "1080p webcam with built-in noise-canceling microphone. Perfect for video calls and streaming.",
+      "category": "Accessories",
+      "price": 79.99,
+      "tags": ["webcam", "camera", "video", "streaming", "hd"],
+      "image": "https://via.placeholder.com/400x400/f59e0b/ffffff?text=Webcam"
+    },
+    {
+      "id": "headset-wireless-1",
+      "name": "Wireless Gaming Headset",
+      "description": "Immersive surround sound wireless headset with comfortable ear cushions and long battery life.",
+      "category": "Audio",
+      "price": 149.99,
+      "tags": ["headset", "audio", "wireless", "gaming", "surround-sound"],
+      "image": "https://via.placeholder.com/400x400/ef4444/ffffff?text=Headset"
+    },
+    {
+      "id": "desk-mat-1",
+      "name": "Extended Gaming Desk Mat",
+      "description": "Large desk mat with smooth surface and non-slip base. Protects your desk and enhances mouse movement.",
+      "category": "Accessories",
+      "price": 24.99,
+      "tags": ["desk-mat", "gaming", "accessory", "mouse-pad"],
+      "image": "https://via.placeholder.com/400x400/6366f1/ffffff?text=Desk+Mat"
+    },
+    {
+      "id": "usb-hub-1",
+      "name": "USB-C Hub 7-in-1",
+      "description": "Versatile USB-C hub with HDMI, USB 3.0, SD card reader, and power delivery. Essential for modern laptops.",
+      "category": "Accessories",
+      "price": 49.99,
+      "tags": ["usb", "hub", "adapter", "connectivity", "usbc"],
+      "image": "https://via.placeholder.com/400x400/14b8a6/ffffff?text=USB+Hub"
+    },
+    {
+      "id": "laptop-stand-1",
+      "name": "Aluminum Laptop Stand",
+      "description": "Adjustable laptop stand improves posture and cooling. Made from premium aluminum with anti-slip pads.",
+      "category": "Accessories",
+      "price": 39.99,
+      "tags": ["stand", "laptop", "ergonomic", "aluminum", "cooling"],
+      "image": "https://via.placeholder.com/400x400/a855f7/ffffff?text=Laptop+Stand"
+    },
+    {
+      "id": "speakers-desk-1",
+      "name": "Desktop Speakers 2.0",
+      "description": "Compact desktop speakers with rich sound quality and USB power. Perfect for small spaces.",
+      "category": "Audio",
+      "price": 69.99,
+      "tags": ["speakers", "audio", "desktop", "sound", "compact"],
+      "image": "https://via.placeholder.com/400x400/f97316/ffffff?text=Speakers"
+    }
+  ],
+  "userBehavior": {
+    "userId": "user_demo_123",
+    "viewedProducts": [
+      "laptop-pro-1",
+      "keyboard-mech-1",
+      "monitor-4k-1",
+      "mouse-wireless-1"
+    ],
+    "purchasedProducts": [
+      "desk-mat-1"
+    ],
+    "cartItems": [
+      "mouse-wireless-1",
+      "usb-hub-1"
+    ],
+    "searchQueries": [
+      "laptop accessories",
+      "gaming setup",
+      "ergonomic workspace"
+    ],
+    "ratings": {
+      "desk-mat-1": 5
+    }
+  }
+}

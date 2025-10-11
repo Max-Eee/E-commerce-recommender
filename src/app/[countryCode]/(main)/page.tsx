@@ -1,14 +1,12 @@
 import { Metadata } from "next"
-
-import FeaturedProducts from "@modules/home/components/featured-products"
+import InputSection from "@modules/home/components/input-section"
+import ApproachSection from "@modules/home/components/approach-section"
 import Hero from "@modules/home/components/hero"
-import { listCollections } from "@lib/data/collections"
-import { getRegion } from "@lib/data/regions"
 
 export const metadata: Metadata = {
-  title: "Medusa Next.js Starter Template",
+  title: "E Product Recommender",
   description:
-    "A performant frontend ecommerce starter template with Next.js 15 and Medusa.",
+    "E-commerce Product Recommendation Engine with LLM-powered explanations using hybrid algorithms.",
 }
 
 export default async function Home(props: {
@@ -16,26 +14,17 @@ export default async function Home(props: {
 }) {
   const params = await props.params
 
-  const { countryCode } = params
-
-  const region = await getRegion(countryCode)
-
-  const { collections } = await listCollections({
-    fields: "id, handle, title",
-  })
-
-  if (!collections || !region) {
-    return null
-  }
-
   return (
-    <>
+    <div className="min-h-screen">
+      {/* Hero Section with CardSwap */}
       <Hero />
-      <div className="py-12">
-        <ul className="flex flex-col gap-x-6">
-          <FeaturedProducts collections={collections} region={region} />
-        </ul>
-      </div>
-    </>
+
+      {/* Input Section */}
+      <InputSection countryCode={params.countryCode} />
+
+      {/* Approach Section */}
+      <ApproachSection />
+
+    </div>
   )
 }

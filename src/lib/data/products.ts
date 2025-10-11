@@ -7,6 +7,8 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import { getAuthHeaders, getCacheOptions } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
+const MOCK_MODE = !process.env.MEDUSA_BACKEND_URL
+
 export const listProducts = async ({
   pageParam = 1,
   queryParams,
@@ -14,14 +16,61 @@ export const listProducts = async ({
   regionId,
 }: {
   pageParam?: number
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
+  queryParams?: HttpTypes.FindParams
   countryCode?: string
   regionId?: string
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
-  queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductListParams
+  queryParams?: HttpTypes.FindParams
 }> => {
+  if (MOCK_MODE) {
+    // In mock mode, try to get products from recommendation data stored in cookies
+    const { getRecommendationDataFromCookie } = await import("@lib/util/recommendation-cookies")
+    const recommendationData = getRecommendationDataFromCookie()
+    
+    if (recommendationData?.products && recommendationData.products.length > 0) {
+      // Convert our Product type to StoreProduct type for display
+      const mockProducts = recommendationData.products.map((p: any) => ({
+        id: p.id,
+        title: p.name,
+        handle: p.id,
+        description: p.description,
+        thumbnail: p.image || null,
+        variants: [{
+          id: `${p.id}-variant`,
+          title: 'Default',
+          calculated_price: {
+            calculated_amount: p.price * 100, // convert to cents
+            original_amount: p.price * 100,
+          },
+          inventory_quantity: 10,
+        }],
+        categories: p.category ? [{ name: p.category }] : [],
+        tags: p.tags?.map((t: string) => ({ value: t })) || [],
+        metadata: {},
+      })) as unknown as HttpTypes.StoreProduct[]
+      
+      // Apply pagination
+      const limit = queryParams?.limit || 12
+      const offset = pageParam > 1 ? (pageParam - 1) * limit : 0
+      const paginatedProducts = mockProducts.slice(offset, offset + limit)
+      const nextPage = mockProducts.length > offset + limit ? pageParam + 1 : null
+      
+      return {
+        response: { products: paginatedProducts, count: mockProducts.length },
+        nextPage,
+        queryParams,
+      }
+    }
+    
+    return {
+      response: { products: [], count: 0 },
+      nextPage: null,
+      queryParams,
+    }
+  }
+
   if (!countryCode && !regionId) {
     throw new Error("Country code or region ID is required")
   }
@@ -92,7 +141,7 @@ export const listProducts = async ({
 export const listProductsWithSort = async ({
   page = 0,
   queryParams,
-  sortBy = "created_at",
+  sortBy = "price_asc",
   countryCode,
 }: {
   page?: number

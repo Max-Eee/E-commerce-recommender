@@ -1,16 +1,19 @@
-import { login } from "@lib/data/customer"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
-import ErrorMessage from "@modules/checkout/components/error-message"
-import { SubmitButton } from "@modules/checkout/components/submit-button"
+
 import Input from "@modules/common/components/input"
-import { useActionState } from "react"
+import { toast } from "@medusajs/ui"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
 }
 
 const Login = ({ setCurrentView }: Props) => {
-  const [message, formAction] = useActionState(login, null)
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    toast.info("This is a mock website. Login functionality is not implemented.", {
+      duration: 4000,
+    })
+  }
 
   return (
     <div
@@ -21,7 +24,7 @@ const Login = ({ setCurrentView }: Props) => {
       <p className="text-center text-base-regular text-ui-fg-base mb-8">
         Sign in to access an enhanced shopping experience.
       </p>
-      <form className="w-full" action={formAction}>
+      <form className="w-full" onSubmit={handleLogin}>
         <div className="flex flex-col w-full gap-y-2">
           <Input
             label="Email"
@@ -41,10 +44,13 @@ const Login = ({ setCurrentView }: Props) => {
             data-testid="password-input"
           />
         </div>
-        <ErrorMessage error={message} data-testid="login-error-message" />
-        <SubmitButton data-testid="sign-in-button" className="w-full mt-6">
+        <button
+          type="submit"
+          data-testid="sign-in-button"
+          className="w-full mt-6 bg-ui-fg-base text-ui-fg-on-color rounded-md py-2 px-4 hover:bg-ui-fg-base/90 transition-colors"
+        >
           Sign in
-        </SubmitButton>
+        </button>
       </form>
       <span className="text-center text-ui-fg-base text-small-regular mt-6">
         Not a member?{" "}

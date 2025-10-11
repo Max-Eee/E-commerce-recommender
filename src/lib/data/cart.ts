@@ -15,12 +15,18 @@ import {
 } from "./cookies"
 import { getRegion } from "./regions"
 
+const MOCK_MODE = !process.env.MEDUSA_BACKEND_URL
+
 /**
  * Retrieves a cart by its ID. If no ID is provided, it will use the cart ID from the cookies.
  * @param cartId - optional - The ID of the cart to retrieve.
  * @returns The cart object if found, or null if not found.
  */
 export async function retrieveCart(cartId?: string, fields?: string) {
+  if (MOCK_MODE) {
+    return null // No cart in mock mode
+  }
+
   const id = cartId || (await getCartId())
   fields ??= "*items, *region, *items.product, *items.variant, *items.thumbnail, *items.metadata, +items.total, *promotions, +shipping_methods.name"
 

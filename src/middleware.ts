@@ -13,10 +13,28 @@ const regionMapCache = {
 async function getRegionMap(cacheId: string) {
   const { regionMap, regionMapUpdated } = regionMapCache
 
+  // Mock mode: If no backend URL is configured, use mock regions
   if (!BACKEND_URL) {
-    throw new Error(
-      "Middleware.ts: Error fetching regions. Did you set up regions in your Medusa Admin and define a MEDUSA_BACKEND_URL environment variable? Note that the variable is no longer named NEXT_PUBLIC_MEDUSA_BACKEND_URL."
-    )
+    // Create a mock region map with common country codes
+    if (!regionMap.keys().next().value) {
+      const mockRegion: any = {
+        id: "mock-region",
+        name: "Mock Region",
+        currency_code: "usd",
+        countries: [
+          { iso_2: "us" },
+          { iso_2: "ca" },
+          { iso_2: "gb" },
+          { iso_2: "de" },
+          { iso_2: "fr" },
+        ],
+      }
+      
+      mockRegion.countries.forEach((c: any) => {
+        regionMapCache.regionMap.set(c.iso_2, mockRegion)
+      })
+    }
+    return regionMapCache.regionMap
   }
 
   if (

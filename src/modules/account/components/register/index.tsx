@@ -1,19 +1,21 @@
 "use client"
 
-import { useActionState } from "react"
 import Input from "@modules/common/components/input"
 import { LOGIN_VIEW } from "@modules/account/templates/login-template"
-import ErrorMessage from "@modules/checkout/components/error-message"
-import { SubmitButton } from "@modules/checkout/components/submit-button"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import { signup } from "@lib/data/customer"
+import { toast } from "@medusajs/ui"
 
 type Props = {
   setCurrentView: (view: LOGIN_VIEW) => void
 }
 
 const Register = ({ setCurrentView }: Props) => {
-  const [message, formAction] = useActionState(signup, null)
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    toast.info("This is a mock website. Signup functionality is not implemented.", {
+      duration: 4000,
+    })
+  }
 
   return (
     <div
@@ -21,13 +23,13 @@ const Register = ({ setCurrentView }: Props) => {
       data-testid="register-page"
     >
       <h1 className="text-large-semi uppercase mb-6">
-        Become a Medusa Store Member
+        Become a The E-Commerce Store Member
       </h1>
       <p className="text-center text-base-regular text-ui-fg-base mb-4">
-        Create your Medusa Store Member profile, and get access to an enhanced
+        Create your The E-Commerce Store Member profile, and get access to an enhanced
         shopping experience.
       </p>
-      <form className="w-full flex flex-col" action={formAction}>
+      <form className="w-full flex flex-col" onSubmit={handleSignup}>
         <div className="flex flex-col w-full gap-y-2">
           <Input
             label="First name"
@@ -67,9 +69,8 @@ const Register = ({ setCurrentView }: Props) => {
             data-testid="password-input"
           />
         </div>
-        <ErrorMessage error={message} data-testid="register-error" />
         <span className="text-center text-ui-fg-base text-small-regular mt-6">
-          By creating an account, you agree to Medusa Store&apos;s{" "}
+          By creating an account, you agree to The E-Commerce Store&apos;s{" "}
           <LocalizedClientLink
             href="/content/privacy-policy"
             className="underline"
@@ -85,9 +86,13 @@ const Register = ({ setCurrentView }: Props) => {
           </LocalizedClientLink>
           .
         </span>
-        <SubmitButton className="w-full mt-6" data-testid="register-button">
+        <button
+          type="submit"
+          className="w-full mt-6 bg-ui-fg-base text-ui-fg-on-color rounded-md py-2 px-4 hover:bg-ui-fg-base/90 transition-colors"
+          data-testid="register-button"
+        >
           Join
-        </SubmitButton>
+        </button>
       </form>
       <span className="text-center text-ui-fg-base text-small-regular mt-6">
         Already a member?{" "}
