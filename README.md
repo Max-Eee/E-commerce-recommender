@@ -1,44 +1,44 @@
 
----
 
-## 🚀 What Makes This Different?
 
-| Traditional E-Commerce | Approach | Business Impact |
-| :--- | :--- | :--- |
-| **Static Product Listings** | Dynamic, personalized recommendations using hybrid collaborative + content-based filtering | 40%+ increase in product discovery and cross-selling |
-| **Generic Recommendations** | Context-aware suggestions with LLM-powered natural language explanations via Google Gemini | Higher customer engagement and trust |
-| **Basic Analytics** | Advanced user behavior tracking with engagement scoring (view duration, interactions, cart actions) | Better understanding of customer intent |
-| **Manual Curation** | Automated trending product detection and intelligent recommendation engine | Reduced manual effort, real-time adaptability |
-| **One-Size-Fits-All** | Multi-algorithm approach (collaborative filtering, content-based, trending, hybrid) for diverse use cases | Improved conversion rates across different customer segments |
+A comprehensive, production-ready Next.js 15 storefront with AI-powered recommendations, built with Medusa backend for modern e-commerce experiences that convert browsing to purchases.
 
-<br>
 
----
+<br><br>
 
-## 🎯 Core Features & Architecture
+|  | Traditional E-Commerce | Our Approach | Business Impact |
+| :--- | :--- | :--- | :--- |
+| **Product Discovery** | Static product listings with basic filtering | Dynamic, personalized recommendations using hybrid collaborative + content-based filtering | 40%+ increase in product discovery and cross-selling opportunities |
+| **Recommendations** | Generic "You may also like" sections | Context-aware AI suggestions with LLM-powered natural language explanations via Google Gemini | Higher customer engagement, trust, and conversion rates |
+| **User Intelligence** | Basic analytics and tracking | Advanced user behavior tracking with engagement scoring (view duration, interactions, cart actions, purchases) | Better understanding of customer intent and preferences |
+| **Content Curation** | Manual product curation and merchandising | Automated trending product detection and intelligent recommendation engine | Reduced manual effort, real-time adaptability to market trends |
+| **Personalization** | One-size-fits-all shopping experience | Multi-algorithm approach (collaborative filtering, content-based, trending, hybrid) for diverse use cases | Improved conversion rates across different customer segments |
+
+<img width="1920" height="158" alt="Core Features" src="https://github.com/user-attachments/assets/2fb627c4-5458-424a-a4ca-f54d08e0c8cf" />
+<br><br>
 
 **The Challenge**
-Build a modern, scalable e-commerce platform that provides personalized shopping experiences while maintaining high performance and developer experience.
+Build a modern, scalable e-commerce platform that provides personalized shopping experiences while maintaining high performance and exceptional developer experience.
 
 **Our Solution**
-A comprehensive Next.js 15 storefront integrated with Medusa backend, enhanced with AI-powered recommendations that understand user behavior and provide intelligent product suggestions with natural language explanations.
+A comprehensive Next.js 15 storefront integrated with Medusa backend, enhanced with AI-powered recommendations that understand user behavior and provide intelligent product suggestions with natural language explanations powered by Google Gemini.
 
 **Success Metrics**
-* Improved product discovery rates
+* Improved product discovery rates and user engagement
 * Higher average order values through intelligent recommendations
-* Enhanced user engagement with AI-powered explanations
+* Enhanced user satisfaction with AI-powered explanations
 * Faster time-to-market with production-ready components
+* Reduced cart abandonment through personalized experiences
 
 **Key Objectives**
-* **Intelligent Recommendations:** Multi-algorithm system combining collaborative filtering, content-based matching, and trending analysis
-* **AI-Powered Explanations:** Google Gemini integration for natural language recommendation reasoning
-* **Modern Tech Stack:** Next.js 15 with App Router, Server Components, and Server Actions
-* **Production Ready:** Full e-commerce functionality with cart, checkout, accounts, and order management
-* **Developer Experience:** TypeScript, Tailwind CSS, and modular architecture
+* **Intelligent Recommendations:** Multi-algorithm system combining collaborative filtering, content-based matching, trending analysis, and hybrid approaches
+* **AI-Powered Explanations:** Google Gemini integration for natural language recommendation reasoning that builds customer trust
+* **Modern Tech Stack:** Next.js 15 with App Router, Server Components, Server Actions, and React 19 RC
+* **Production Ready:** Full e-commerce functionality with cart, checkout, accounts, order management, and payment processing
+* **Developer Experience:** TypeScript, Tailwind CSS, modular architecture, and comprehensive documentation
 
-<br>
+<img width="1920" height="158" alt="Technology Stack" src="https://github.com/user-attachments/assets/cebb1d98-004c-40c6-911a-861727aa6cb0" />
 
----
 
 ## 📊 Technology Stack & Data Architecture
 
