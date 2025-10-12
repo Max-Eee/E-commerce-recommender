@@ -19,6 +19,7 @@ export default function InputSection() {
   const [error, setError] = useState("")
   const [currentStatus, setCurrentStatus] = useState("")
   const [showGuide, setShowGuide] = useState(false)
+  const [showAdvancedFormat, setShowAdvancedFormat] = useState(false)
   const [targetUserId, setTargetUserId] = useState("")
   const [showUserSelection, setShowUserSelection] = useState(false)
   const [detectedUsers, setDetectedUsers] = useState<string[]>([])
@@ -739,33 +740,166 @@ export default function InputSection() {
                 <div className="space-y-3">
                   <div className="flex gap-3">
                     <div className="w-32 flex-shrink-0">
+                      <code className="text-xs font-mono text-ui-fg-base">userId</code>
+                      <span className="ml-1 text-[10px] text-red-600">*</span>
+                    </div>
+                    <p className="text-xs text-ui-fg-subtle">Unique user identifier (required)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-32 flex-shrink-0">
                       <code className="text-xs font-mono text-ui-fg-base">viewedProducts</code>
                     </div>
-                    <p className="text-xs text-ui-fg-subtle">Product IDs the user viewed</p>
+                    <p className="text-xs text-ui-fg-subtle">Array of product IDs the user viewed</p>
                   </div>
                   <div className="flex gap-3">
                     <div className="w-32 flex-shrink-0">
                       <code className="text-xs font-mono text-ui-fg-base">cartItems</code>
                     </div>
-                    <p className="text-xs text-ui-fg-subtle">Product IDs in shopping cart</p>
+                    <p className="text-xs text-ui-fg-subtle">Array of product IDs in shopping cart</p>
                   </div>
                   <div className="flex gap-3">
                     <div className="w-32 flex-shrink-0">
                       <code className="text-xs font-mono text-ui-fg-base">purchasedProducts</code>
                     </div>
-                    <p className="text-xs text-ui-fg-subtle">Product IDs user purchased</p>
+                    <p className="text-xs text-ui-fg-subtle">Array of product IDs user purchased</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-32 flex-shrink-0">
+                      <code className="text-xs font-mono text-ui-fg-base">ratings</code>
+                    </div>
+                    <p className="text-xs text-ui-fg-subtle">Object mapping product IDs to ratings (1-5)</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-32 flex-shrink-0">
+                      <code className="text-xs font-mono text-ui-fg-base">searchQueries</code>
+                    </div>
+                    <p className="text-xs text-ui-fg-subtle">Array of search terms the user entered</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-32 flex-shrink-0">
+                      <code className="text-xs font-mono text-ui-fg-base">sessionDuration</code>
+                    </div>
+                    <p className="text-xs text-ui-fg-subtle">Session length in seconds</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-32 flex-shrink-0">
+                      <code className="text-xs font-mono text-ui-fg-base">timeOfDay</code>
+                    </div>
+                    <p className="text-xs text-ui-fg-subtle">"morning", "afternoon", "evening", or "night"</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="w-32 flex-shrink-0">
+                      <code className="text-xs font-mono text-ui-fg-base">deviceType</code>
+                    </div>
+                    <p className="text-xs text-ui-fg-subtle">"mobile", "tablet", or "desktop"</p>
                   </div>
                   <div className="flex gap-3">
                     <div className="w-32 flex-shrink-0">
                       <code className="text-xs font-mono text-ui-fg-base">productInteractions</code>
                     </div>
-                    <p className="text-xs text-ui-fg-subtle">Detailed engagement metrics</p>
+                    <p className="text-xs text-ui-fg-subtle">
+                      Detailed engagement metrics (
+                      <button
+                        onClick={() => setShowAdvancedFormat(!showAdvancedFormat)}
+                        className="text-ui-fg-base hover:text-ui-fg-subtle underline text-xs"
+                      >
+                        {showAdvancedFormat ? 'hide advanced format' : 'see advanced format'}
+                      </button>
+                      )
+                    </p>
                   </div>
+                  {showAdvancedFormat && (
+                    <div className="mt-4 p-4 bg-ui-bg-base border border-ui-border-base">
+                      <div className="mb-4">
+                        <p className="text-sm text-ui-fg-subtle">
+                          Detailed metrics for each product interaction, providing deeper insights into user engagement.
+                        </p>
+                      </div>
+                      <div className="bg-white border border-ui-border-base p-3 mb-4">
+                        <pre className="text-xs font-mono text-ui-fg-base overflow-x-auto">{`"productInteractions": {
+  "electronics-1": {
+    "productId": "electronics-1",
+    "viewCount": 8,
+    "viewDuration": 180,
+    "interactions": {
+      "sizeSelected": false,
+      "colorSelected": true,
+      "imageZoomed": true,
+      "descriptionRead": true,
+      "reviewsRead": true
+    },
+    "cartActions": {
+      "addedToCart": 1698765432000,
+      "timesAddedToCart": 2,
+      "removedFromCart": null,
+      "timesRemovedFromCart": 0
+    },
+    "checkoutActions": {
+      "proceededToCheckout": false,
+      "completedPurchase": false,
+      "purchaseCount": 0
+    },
+    "rating": null,
+    "timestamp": 1698765432000
+  }
+}`}</pre>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">productId</code>
+                            <span className="ml-1 text-[10px] text-red-600">*</span>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">Product ID this interaction refers to (required)</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">viewCount</code>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">Number of times the product was viewed</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">viewDuration</code>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">Total time spent viewing the product (seconds)</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">interactions</code>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">Object with boolean flags for user actions</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">cartActions</code>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">Timestamps and counts for cart operations</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">checkoutActions</code>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">Checkout and purchase related actions</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">rating</code>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">User's rating for the product (1-5 or null)</p>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="w-28 flex-shrink-0">
+                            <code className="text-xs font-mono text-ui-fg-base">timestamp</code>
+                          </div>
+                          <p className="text-xs text-ui-fg-subtle">Unix timestamp of the last interaction</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-
-            {/* Important Notes */}
             <div className="border-t border-ui-border-base pt-8">
               <div className="mb-6">
                 <div className="flex items-center gap-2 mb-3">
