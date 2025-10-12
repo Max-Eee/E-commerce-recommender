@@ -16,6 +16,9 @@ A Next.js 15 storefront featuring intelligent product recommendations using a **
 > **Purpose**: This is a demonstration of advanced recommendation algorithms in e-commerce.  
 > The hybrid approach provides personalized shopping experiences by understanding user behavior patterns.
 
+## 🎥 Demo Video
+https://github.com/user-attachments/assets/d80a264d-fc55-4238-a5eb-4335a08eb852
+
 ## 🏗️ Hybrid Recommendation Architecture
 
 ```mermaid
