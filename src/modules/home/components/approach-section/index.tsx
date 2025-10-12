@@ -184,7 +184,7 @@ export default function ApproachSection() {
           {/* Process Flow - Mobile-Optimized */}
           <div className="mt-12 md:mt-16 pt-8 md:pt-12 border-t border-ui-border-base">
             <div className="max-w-5xl mx-0 sm:mx-auto">
-              <p className="text-xs text-ui-fg-muted mb-8 md:mb-10 uppercase tracking-wide">
+              <p className="text-xs text-ui-fg-muted mb-8 md:mb-10 uppercase tracking-wide text-left sm:text-center">
                 Process Flow
               </p>
               
