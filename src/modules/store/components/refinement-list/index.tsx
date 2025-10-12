@@ -29,7 +29,8 @@ const RefinementList = ({ sortBy, 'data-testid': dataTestId }: RefinementListPro
 
   const setQueryParams = (name: string, value: string) => {
     const query = createQueryString(name, value)
-    router.push(`${pathname}?${query}`)
+    // Preserve current scroll position when updating query params
+    router.push(`${pathname}?${query}`, { scroll: false })
     setIsOpen(false) // Close mobile dropdown after selection
   }
 

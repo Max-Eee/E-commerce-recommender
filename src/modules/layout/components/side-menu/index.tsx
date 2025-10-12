@@ -3,7 +3,7 @@
 import { Popover, PopoverPanel, Transition } from "@headlessui/react"
 import { XMark } from "@medusajs/icons"
 import { Text } from "@medusajs/ui"
-import { Fragment } from "react"
+import { Fragment, useEffect } from "react"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
@@ -21,6 +21,8 @@ const SideMenu = () => {
         <Popover className="h-full flex">
           {({ open, close }) => (
             <>
+              {/* Notify other client components when the menu opens/closes */}
+              <MenuOpenNotifier open={open} />
               <div className="relative flex h-full">
                 <Popover.Button
                   data-testid="nav-menu-button"
@@ -84,3 +86,27 @@ const SideMenu = () => {
 }
 
 export default SideMenu
+
+function MenuOpenNotifier({ open }: { open: boolean }) {
+  useEffect(() => {
+    try {
+      const mq = window.matchMedia('(max-width: 768px)')
+      if (mq.matches) {
+        window.dispatchEvent(new CustomEvent('nav-menu-open', { detail: open }))
+      } else {
+        // Ensure we explicitly clear the mobile-only flag on desktop
+        window.dispatchEvent(new CustomEvent('nav-menu-open', { detail: false }))
+      }
+    } catch (e) {
+      // ignore server-side or unsupported environments
+    }
+
+    return () => {
+      try {
+        window.dispatchEvent(new CustomEvent('nav-menu-open', { detail: false }))
+      } catch (e) {}
+    }
+  }, [open])
+
+  return null
+}

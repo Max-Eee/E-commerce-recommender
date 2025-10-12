@@ -22,8 +22,6 @@ export default function InputSection() {
   const [targetUserId, setTargetUserId] = useState("")
   const [showUserSelection, setShowUserSelection] = useState(false)
   const [detectedUsers, setDetectedUsers] = useState<string[]>([])
-  const [parsedProductsFromDetection, setParsedProductsFromDetection] = useState<any | null>(null)
-  const [parsedUserBehaviorFromDetection, setParsedUserBehaviorFromDetection] = useState<any | null>(null)
 
   // Use the appropriate state based on input method
   const productsInput = inputMethod === "json" ? jsonProductsInput : textProductsInput
@@ -61,11 +59,11 @@ export default function InputSection() {
   const handleSubmit = async () => {
     setError("")
     
-    // For JSON input, detect users immediately before parsing
-    if (inputMethod === "json") {
-      // Detect users from JSON input
-      let users: string[] = []
-      try {
+    // Detect users from input
+    let users: string[] = []
+    try {
+      if (inputMethod === "json") {
+        // Try to parse JSON to detect users
         const parsed = JSON.parse(userBehaviorInput)
         if (Array.isArray(parsed)) {
           // Multiple user objects in array
@@ -74,85 +72,32 @@ export default function InputSection() {
           // Single user object
           users = [parsed.userId]
         }
-      } catch (e) {
-        // If parsing fails, continue without user detection
+      } else {
+        // Natural language - extract user mentions
+        const userMatches = userBehaviorInput.match(/user\s*[:\-]?\s*([a-zA-Z0-9_-]+)/gi)
+        if (userMatches) {
+          const uniqueUsers = new Set(userMatches.map(m => m.replace(/user\s*[:\-]?\s*/i, '')))
+          users = Array.from(uniqueUsers)
+        }
       }
-
-      // If multiple users detected, show selection modal
-      if (users.length > 1) {
-        setDetectedUsers(users)
-        setShowUserSelection(true)
-        return
-      } else if (users.length === 1) {
-        setTargetUserId(users[0])
-      }
-
-      // Proceed with submission
-      await executeSubmit(users.length === 1 ? users[0] : "")
-    } else {
-      // Natural language - need to parse first to detect users
-      // The API will parse and return detected users
-      await detectUsersFromNaturalLanguage()
+    } catch (e) {
+      // If parsing fails, continue without user detection
     }
+
+    // If multiple users detected, show selection modal
+    if (users.length > 1) {
+      setDetectedUsers(users)
+      setShowUserSelection(true)
+      return
+    } else if (users.length === 1) {
+      setTargetUserId(users[0])
+    }
+
+    // Proceed with submission
+    await executeSubmit(users.length === 1 ? users[0] : "")
   }
 
-  const detectUsersFromNaturalLanguage = async () => {
-    setError("")
-    setLoading(true)
-    
-    toast.info("Using AI to understand your data - detecting users...", {
-      duration: 4000,
-    })
-    
-    setCurrentStatus("Parsing with AI")
-
-    try {
-      const response = await fetch("/api/recommendations/detect-users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          productsInput,
-          userBehaviorInput,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to detect users")
-      }
-
-      const users: string[] = data.users || []
-      const parsedProducts = data.parsedProducts || null
-      const parsedUserBehavior = data.parsedUserBehavior || null
-      // store parsed payloads for reuse
-      setParsedProductsFromDetection(parsedProducts)
-      setParsedUserBehaviorFromDetection(parsedUserBehavior)
-      
-      setLoading(false)
-      setCurrentStatus("")
-
-      // If multiple users detected, show selection modal
-      if (users.length > 1) {
-        setDetectedUsers(users)
-        setShowUserSelection(true)
-        return
-      } else if (users.length === 1) {
-        setTargetUserId(users[0])
-      }
-
-  // Proceed with full recommendation generation, pass parsed payloads if available
-  await executeSubmit(users.length === 1 ? users[0] : "", parsedProducts, parsedUserBehavior)
-    } catch (err: any) {
-      setError(err.message)
-      setLoading(false)
-      setCurrentStatus("")
-    }
-  }
-
-  const executeSubmit = async (selectedUserId: string = "", parsedProducts: any = null, parsedUserBehavior: any = null) => {
+  const executeSubmit = async (selectedUserId: string = "") => {
     setError("")
     setLoading(true)
     setShowUserSelection(false)
@@ -163,26 +108,21 @@ export default function InputSection() {
         duration: 4000,
       })
     } else {
-      toast.info("Generating personalized recommendations for selected user", {
-        duration: 4000,
+      toast.info("Using AI to convert natural language into structured format - this may take a moment", {
+        duration: 5000,
       })
     }
     
     // Clear previous recommendations before generating new ones
-    console.log('\n🔄 Clearing previous recommendations')
+    console.log('\n🔄 Clearing previous recommendations...')
     clearRecommendationData()
     
-    setCurrentStatus("Generating recommendations")
+    setCurrentStatus("Processing input...")
 
     try {
       const inputType = inputMethod === "text" ? "natural" : "json"
       
-      // Status messages
-      if (inputMethod === "text") {
-        setCurrentStatus("Running hybrid recommendation algorithm")
-      } else {
-        setCurrentStatus("Parsing JSON data")
-      }
+      setCurrentStatus("Parsing data with LLM...")
       
       const response = await fetch("/api/recommendations", {
         method: "POST",
@@ -194,8 +134,6 @@ export default function InputSection() {
           userBehaviorInput,
           inputType,
           targetUserId: selectedUserId || targetUserId, // Send the target user ID
-          parsedProducts: parsedProducts || parsedProductsFromDetection,
-          parsedUserBehavior: parsedUserBehavior || parsedUserBehaviorFromDetection,
         }),
       })
 
@@ -216,15 +154,15 @@ export default function InputSection() {
       console.log('Full user behavior:', data.data.userBehavior)
       console.log('='.repeat(80) + '\n')
 
-      setCurrentStatus("Analyzing with hybrid algorithm")
+      setCurrentStatus("Analyzing with hybrid algorithm...")
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      setCurrentStatus("Generating AI insights")
+      setCurrentStatus("Generating AI insights...")
       await new Promise(resolve => setTimeout(resolve, 500))
       
-      setCurrentStatus("Finalizing recommendations")
+      setCurrentStatus("Finalizing recommendations...")
       
-      console.log('\n🔄 About to save to cookies')
+      console.log('\n🔄 About to save to cookies...')
       console.log('Data being saved:', {
         recommendations: data.data.recommendations?.length,
         products: data.data.products?.length,
@@ -244,7 +182,7 @@ export default function InputSection() {
         cartItems: verified?.userBehavior?.cartItems,
       })
       
-      setCurrentStatus("Complete! Redirecting")
+      setCurrentStatus("Complete! Redirecting...")
       
       // Navigate after a brief delay to show completion
       setTimeout(() => {
@@ -947,17 +885,9 @@ export default function InputSection() {
           <button
             onClick={handleSubmit}
             disabled={loading || !productsInput || !userBehaviorInput}
-            className="px-8 py-2.5 bg-ui-fg-base text-white hover:bg-ui-fg-subtle transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-ui-fg-base min-w-[240px] flex items-center justify-center gap-2"
+            className="px-8 py-2.5 bg-ui-fg-base text-white hover:bg-ui-fg-subtle transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed border border-ui-fg-base min-w-[240px]"
           >
-            <span>{loading ? currentStatus : "Generate Recommendations"}</span>
-            {loading && (
-              <span className="inline-block align-middle">
-                <svg className="animate-spin w-4 h-4 text-white" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                </svg>
-              </span>
-            )}
+            {loading ? currentStatus : "Generate Recommendations"}
           </button>
         </div>
 

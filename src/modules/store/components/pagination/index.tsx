@@ -24,7 +24,8 @@ export function Pagination({
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams)
     params.set("page", newPage.toString())
-    router.push(`${pathname}?${params.toString()}`)
+    // Preserve current scroll position when navigating pages
+    router.push(`${pathname}?${params.toString()}`, { scroll: false })
   }
 
   // Function to render a page button

@@ -93,7 +93,7 @@ const Hero = () => {
             height={400}
             cardDistance={40}
             verticalDistance={50}
-            delay={3000}
+            delay={500}
             pauseOnHover={true}
             easing="elastic"
             skewAmount={4}

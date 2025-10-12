@@ -15,6 +15,7 @@ const CartDropdown = () => {
   const [activeTimer, setActiveTimer] = useState<NodeJS.Timer | undefined>(undefined)
   const [cartDropdownOpen, setCartDropdownOpen] = useState(false)
   const [cartItems, setCartItems] = useState<any[]>([])
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const loadCartItems = () => {
@@ -24,9 +25,27 @@ const CartDropdown = () => {
 
     loadCartItems()
     window.addEventListener('cartUpdated', loadCartItems)
-    
+    // Only hide cart on mobile devices (<= 768px)
+    const mq = window.matchMedia('(max-width: 768px)')
+    const onMenuOpen = (e: any) => {
+      if (mq.matches) {
+        setMenuOpen(Boolean(e?.detail))
+      } else {
+        setMenuOpen(false)
+      }
+    }
+    window.addEventListener('nav-menu-open', onMenuOpen)
+
+    // Ensure we restore cart visibility when resizing to desktop
+    const onResize = () => {
+      if (!mq.matches) setMenuOpen(false)
+    }
+    window.addEventListener('resize', onResize)
+
     return () => {
       window.removeEventListener('cartUpdated', loadCartItems)
+      window.removeEventListener('nav-menu-open', onMenuOpen)
+      window.removeEventListener('resize', onResize)
     }
   }, [])
 
@@ -48,7 +67,9 @@ const CartDropdown = () => {
   const pathname = usePathname()
 
   return (
+    // Hide the cart when the side menu is open to avoid interfering with menu interactions
     <div className="h-full z-50" onMouseEnter={openAndCancel} onMouseLeave={close}>
+      {menuOpen ? null : (
       <Popover className="relative h-full">
         <PopoverButton className="h-full">
           <LocalizedClientLink
@@ -114,6 +135,7 @@ const CartDropdown = () => {
           </PopoverPanel>
         </Transition>
       </Popover>
+      )}
     </div>
   )
 }
