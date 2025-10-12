@@ -123,7 +123,7 @@ export default function InputSection() {
     try {
       const inputType = inputMethod === "text" ? "natural" : "json"
       
-      setCurrentStatus("Parsing data with LLM...")
+      setCurrentStatus("Parsing data...")
       
       const response = await fetch("/api/recommendations", {
         method: "POST",
