@@ -72,7 +72,12 @@ export const listProducts = async ({
   }
 
   if (!countryCode && !regionId) {
-    throw new Error("Country code or region ID is required")
+    // Use default region if neither countryCode nor regionId is provided
+    const { getDefaultRegion } = await import("./regions")
+    const defaultRegion = await getDefaultRegion()
+    if (defaultRegion) {
+      regionId = defaultRegion.id
+    }
   }
 
   const limit = queryParams?.limit || 12
@@ -83,8 +88,13 @@ export const listProducts = async ({
 
   if (countryCode) {
     region = await getRegion(countryCode)
-  } else {
+  } else if (regionId) {
     region = await retrieveRegion(regionId!)
+  } else {
+    return {
+      response: { products: [], count: 0 },
+      nextPage: null,
+    }
   }
 
   if (!region) {
@@ -142,12 +152,10 @@ export const listProductsWithSort = async ({
   page = 0,
   queryParams,
   sortBy = "price_asc",
-  countryCode,
 }: {
   page?: number
   queryParams?: HttpTypes.FindParams & HttpTypes.StoreProductParams
   sortBy?: SortOptions
-  countryCode: string
 }): Promise<{
   response: { products: HttpTypes.StoreProduct[]; count: number }
   nextPage: number | null
@@ -163,7 +171,6 @@ export const listProductsWithSort = async ({
       ...queryParams,
       limit: 100,
     },
-    countryCode,
   })
 
   const sortedProducts = sortProducts(products, sortBy)

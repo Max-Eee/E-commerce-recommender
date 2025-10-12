@@ -230,31 +230,6 @@ export default function RecommendationsSection() {
 
   return (
     <>
-      {/* Activity Summary */}
-      <div className="bg-ui-bg-subtle border border-ui-border-base p-4 small:p-6 mb-8 small:mb-12">
-        <p className="text-xs text-ui-fg-muted uppercase tracking-wide mb-3 small:mb-4">Activity Summary</p>
-        <div className="grid grid-cols-3 gap-3 small:gap-6">
-          <div className="text-center border-r border-ui-border-base last:border-r-0">
-            <p className="text-xl small:text-2xl font-medium text-ui-fg-base mb-0.5 small:mb-1">
-              {normalizedUserBehavior.viewedProducts.length}
-            </p>
-            <p className="text-[10px] small:text-xs text-ui-fg-subtle">Viewed</p>
-          </div>
-          <div className="text-center border-r border-ui-border-base last:border-r-0">
-            <p className="text-xl small:text-2xl font-medium text-ui-fg-base mb-0.5 small:mb-1">
-              {actualCartCount}
-            </p>
-            <p className="text-[10px] small:text-xs text-ui-fg-subtle">In Cart</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xl small:text-2xl font-medium text-ui-fg-base mb-0.5 small:mb-1">
-              {normalizedUserBehavior.purchasedProducts.length}
-            </p>
-            <p className="text-[10px] small:text-xs text-ui-fg-subtle">Purchased</p>
-          </div>
-        </div>
-      </div>
-
       {/* Rate Limit Notice */}
       {rateLimitExceeded && (
         <div className="mb-6 small:mb-8 bg-ui-bg-subtle border border-ui-border-base p-3 small:p-4">
@@ -274,54 +249,66 @@ export default function RecommendationsSection() {
 
       {/* Recommended Products Section */}
       {recommendations.length > 0 && (
-        <div className="mb-8 small:mb-12">
-          <div className="mb-4 small:mb-6 pb-3 small:pb-4 border-b border-ui-border-base flex justify-between items-center">
-            <div>
-              <p className="text-xs text-ui-fg-muted uppercase tracking-wide mb-1 small:mb-2">Curated For You</p>
-              <h2 className="text-lg small:text-xl font-normal text-ui-fg-base">
-                Recommended Products
-              </h2>
-            </div>
+        <div className="mb-12 small:mb-16">
+          <div className="mb-6 small:mb-8 pb-4 small:pb-5 border-b border-ui-border-base">
+            <p className="text-xs text-ui-fg-muted uppercase tracking-wide mb-2">Curated For You</p>
+            <h2 className="text-2xl small:text-3xl font-normal text-ui-fg-base">
+              Recommended Products
+            </h2>
+            <p className="text-sm text-ui-fg-subtle mt-2">
+              Personalized picks based on your browsing and preferences
+            </p>
           </div>
           
-          <div className="relative px-8 small:px-12">
+          <div className="relative">
             <Carousel
               opts={{
                 align: "start",
                 loop: false,
+                slidesToScroll: 1,
               }}
               className="w-full"
             >
-              <CarouselContent className="-ml-2 small:-ml-4">
+              <CarouselContent className="-ml-3 small:-ml-4">
                 {recommendations.map((rec, index) => {
                 const product = products.find(p => p.id === rec.productId)
                 if (!product) return null
                 
                 return (
-                  <CarouselItem key={rec.productId} className="pl-2 small:pl-4 basis-1/2 xsmall:basis-1/2 small:basis-1/3 medium:basis-1/4">
-                    <div className="group/item">
-                      <div className="relative aspect-square w-full overflow-hidden bg-ui-bg-subtle border border-ui-border-base mb-2 small:mb-3">
+                  <CarouselItem key={rec.productId} className="pl-3 small:pl-4 basis-[45%] xsmall:basis-[40%] small:basis-1/3 medium:basis-1/4 large:basis-1/5">
+                    <div className="group/item h-full">
+                      <div className="relative aspect-square w-full overflow-hidden bg-ui-bg-subtle border border-ui-border-base mb-3 small:mb-4 transition-all duration-300 hover:shadow-lg hover:border-ui-border-strong">
                         <ProductImage product={product} />
                         {index < 3 && (
-                          <div className="absolute top-1 left-1 small:top-2 small:left-2 bg-ui-fg-base text-white px-1.5 py-0.5 small:px-2 small:py-1 text-[10px] small:text-xs">
-                            Top {index + 1}
+                          <div className="absolute top-2 left-2 small:top-3 small:left-3 bg-ui-fg-base text-white px-2 py-1 small:px-2.5 small:py-1.5 text-xs font-medium rounded-sm shadow-md">
+                            #{index + 1}
                           </div>
                         )}
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 small:p-3 opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
+                          <div className="flex items-center gap-1.5">
+                            <svg className="w-3 h-3 small:w-4 small:h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <span className="text-xs small:text-sm text-white font-medium">
+                              {Math.round(rec.score * 100)}% match
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-0.5 small:gap-1">
-                        <h3 className="text-xs small:text-sm text-ui-fg-base group-hover/item:text-ui-fg-subtle transition-colors line-clamp-1">
+                      <div className="flex flex-col gap-1 small:gap-1.5">
+                        <h3 className="text-sm small:text-base text-ui-fg-base group-hover/item:text-blue-600 transition-colors line-clamp-2 leading-snug font-medium">
                           {product.name}
                         </h3>
-                        <div className="flex items-baseline gap-1 small:gap-2">
-                          <span className="text-xs small:text-sm font-medium text-ui-fg-base">
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-base small:text-lg font-semibold text-ui-fg-base">
                             ${product.price.toFixed(2)}
                           </span>
-                          <span className="text-[10px] small:text-xs text-ui-fg-muted">
-                            {Math.round(rec.score * 100)}% match
+                          <span className="text-xs text-ui-fg-muted line-through">
+                            ${(product.price * 1.2).toFixed(2)}
                           </span>
                         </div>
                         {rec.explanation && (
-                          <p className="text-[10px] small:text-xs text-ui-fg-subtle mt-0.5 small:mt-1 line-clamp-2 hidden xsmall:block">
+                          <p className="text-xs text-ui-fg-subtle mt-1 line-clamp-2 leading-relaxed">
                             {rec.explanation}
                           </p>
                         )}
@@ -331,8 +318,8 @@ export default function RecommendationsSection() {
                 )
               })}
             </CarouselContent>
-            <CarouselPrevious className="h-7 w-7 small:h-10 small:w-10 -left-2 small:-left-5 top-[35%] small:top-1/2" />
-            <CarouselNext className="h-7 w-7 small:h-10 small:w-10 -right-2 small:-right-5 top-[35%] small:top-1/2" />
+            <CarouselPrevious />
+            <CarouselNext />
           </Carousel>
           </div>
         </div>
@@ -341,44 +328,52 @@ export default function RecommendationsSection() {
       {/* Recently Viewed Section */}
       {browsedProducts.length > 0 && (
         <div className="mb-8 small:mb-12">
-          <div className="mb-4 small:mb-6 pb-3 small:pb-4 border-b border-ui-border-base flex justify-between items-center">
-            <div>
-              <p className="text-xs text-ui-fg-muted uppercase tracking-wide mb-1 small:mb-2">Continue Shopping</p>
-              <h2 className="text-lg small:text-xl font-normal text-ui-fg-base">
-                Recently Viewed
-              </h2>
-            </div>
+          <div className="mb-6 small:mb-8 pb-4 small:pb-5 border-b border-ui-border-base">
+            <p className="text-xs text-ui-fg-muted uppercase tracking-wide mb-2">Continue Shopping</p>
+            <h2 className="text-2xl small:text-3xl font-normal text-ui-fg-base">
+              Recently Viewed
+            </h2>
+            <p className="text-sm text-ui-fg-subtle mt-2">
+              Pick up where you left off
+            </p>
           </div>
           
-          <div className="relative px-8 small:px-12">
+          <div className="relative">
             <Carousel
               opts={{
                 align: "start",
                 loop: false,
+                slidesToScroll: 1,
               }}
               className="w-full"
             >
-              <CarouselContent className="-ml-2 small:-ml-4">
+              <CarouselContent className="-ml-3 small:-ml-4">
                 {browsedProducts.map((product) => (
-                <CarouselItem key={product.id} className="pl-2 small:pl-4 basis-1/2 xsmall:basis-1/2 small:basis-1/3 medium:basis-1/4">
-                  <div className="group/item">
-                    <div className="relative aspect-square w-full overflow-hidden bg-ui-bg-subtle border border-ui-border-base mb-2 small:mb-3">
+                <CarouselItem key={product.id} className="pl-3 small:pl-4 basis-[45%] xsmall:basis-[40%] small:basis-1/3 medium:basis-1/4 large:basis-1/5">
+                  <div className="group/item h-full">
+                    <div className="relative aspect-square w-full overflow-hidden bg-ui-bg-subtle border border-ui-border-base mb-3 small:mb-4 transition-all duration-300 hover:shadow-lg hover:border-ui-border-strong">
                       <ProductImage product={product} />
+                      <div className="absolute inset-0 bg-black/0 group-hover/item:bg-black/10 transition-colors duration-300" />
                     </div>
-                    <div className="flex flex-col gap-0.5 small:gap-1">
-                      <h3 className="text-xs small:text-sm text-ui-fg-base group-hover/item:text-ui-fg-subtle transition-colors line-clamp-1">
+                    <div className="flex flex-col gap-1 small:gap-1.5">
+                      <h3 className="text-sm small:text-base text-ui-fg-base group-hover/item:text-purple-600 transition-colors line-clamp-2 leading-snug font-medium">
                         {product.name}
                       </h3>
-                      <span className="text-xs small:text-sm font-medium text-ui-fg-base">
+                      <span className="text-base small:text-lg font-semibold text-ui-fg-base">
                         ${product.price.toFixed(2)}
                       </span>
+                      {product.category && (
+                        <span className="text-xs text-ui-fg-muted">
+                          {product.category}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious className="h-7 w-7 small:h-10 small:w-10 -left-2 small:-left-5 top-[35%] small:top-1/2" />
-            <CarouselNext className="h-7 w-7 small:h-10 small:w-10 -right-2 small:-right-5 top-[35%] small:top-1/2" />
+            <CarouselPrevious />
+            <CarouselNext />
           </Carousel>
           </div>
         </div>

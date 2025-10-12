@@ -9,18 +9,14 @@ export const metadata: Metadata = {
     "E-commerce Product Recommendation Engine with LLM-powered explanations using hybrid algorithms.",
 }
 
-export default async function Home(props: {
-  params: Promise<{ countryCode: string }>
-}) {
-  const params = await props.params
-
+export default async function Home() {
   return (
     <div className="min-h-screen">
       {/* Hero Section with CardSwap */}
       <Hero />
 
       {/* Input Section */}
-      <InputSection countryCode={params.countryCode} />
+      <InputSection />
 
       {/* Approach Section */}
       <ApproachSection />

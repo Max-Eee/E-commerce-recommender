@@ -120,15 +120,17 @@ export async function updateCart(data: HttpTypes.StoreUpdateCart) {
 export async function addToCart({
   variantId,
   quantity,
-  countryCode,
 }: {
   variantId: string
   quantity: number
-  countryCode: string
 }) {
   if (!variantId) {
     throw new Error("Missing variant ID when adding to cart")
   }
+
+  const { getDefaultRegion } = await import("./regions")
+  const defaultRegion = await getDefaultRegion()
+  const countryCode = defaultRegion?.countries?.[0]?.iso_2 || "us"
 
   const cart = await getOrSetCart(countryCode)
 

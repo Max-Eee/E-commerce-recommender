@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 
 import AddressBook from "@modules/account/components/address-book"
 
-import { getRegion } from "@lib/data/regions"
+import { getDefaultRegion } from "@lib/data/regions"
 import { retrieveCustomer } from "@lib/data/customer"
 
 export const metadata: Metadata = {
@@ -11,13 +11,9 @@ export const metadata: Metadata = {
   description: "View your addresses",
 }
 
-export default async function Addresses(props: {
-  params: Promise<{ countryCode: string }>
-}) {
-  const params = await props.params
-  const { countryCode } = params
+export default async function Addresses() {
   const customer = await retrieveCustomer()
-  const region = await getRegion(countryCode)
+  const region = await getDefaultRegion()
 
   if (!customer || !region) {
     notFound()

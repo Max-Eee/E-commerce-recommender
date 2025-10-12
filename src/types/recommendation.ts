@@ -38,9 +38,9 @@ export interface ProductInteraction {
 
 export interface UserBehavior {
   userId: string
-  viewedProducts: string[] // Legacy support
-  purchasedProducts: string[] // Legacy support
-  cartItems: string[] // Legacy support
+  viewedProducts?: string[] // Legacy support - optional
+  purchasedProducts?: string[] // Legacy support - optional
+  cartItems?: string[] // Legacy support - optional
   searchQueries?: string[]
   ratings?: Record<string, number> // Legacy support
   

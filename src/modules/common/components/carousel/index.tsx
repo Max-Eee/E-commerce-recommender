@@ -195,7 +195,7 @@ const CarouselPrevious = React.forwardRef<
   return (
     <button
       ref={ref}
-      className={`absolute -left-12 top-0 h-full bg-white border border-ui-border-base px-3 shadow-md disabled:opacity-30 transition-all hover:bg-ui-bg-subtle z-10 flex items-center justify-center ${
+      className={`absolute -left-3 small:-left-4 top-1/2 -translate-y-1/2 h-8 w-8 small:h-10 small:w-10 rounded-full bg-white border border-ui-border-base shadow-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-ui-bg-subtle hover:shadow-xl hover:scale-105 active:scale-95 z-10 flex items-center justify-center ${
         className || ""
       }`}
       disabled={!canScrollPrev}
@@ -203,7 +203,7 @@ const CarouselPrevious = React.forwardRef<
       {...props}
     >
       <svg
-        className="w-5 h-5 text-ui-fg-base"
+        className="w-4 h-4 small:w-5 small:h-5 text-ui-fg-base"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -230,7 +230,7 @@ const CarouselNext = React.forwardRef<
   return (
     <button
       ref={ref}
-      className={`absolute -right-12 top-0 h-full bg-white border border-ui-border-base px-3 shadow-md disabled:opacity-30 transition-all hover:bg-ui-bg-subtle z-10 flex items-center justify-center ${
+      className={`absolute -right-3 small:-right-4 top-1/2 -translate-y-1/2 h-8 w-8 small:h-10 small:w-10 rounded-full bg-white border border-ui-border-base shadow-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:bg-ui-bg-subtle hover:shadow-xl hover:scale-105 active:scale-95 z-10 flex items-center justify-center ${
         className || ""
       }`}
       disabled={!canScrollNext}
@@ -238,7 +238,7 @@ const CarouselNext = React.forwardRef<
       {...props}
     >
       <svg
-        className="w-5 h-5 text-ui-fg-base"
+        className="w-4 h-4 small:w-5 small:h-5 text-ui-fg-base"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

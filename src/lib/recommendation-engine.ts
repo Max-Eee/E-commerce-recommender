@@ -358,39 +358,51 @@ export function collaborativeFiltering(
     if (!userInteractions.has(product.id)) {
       let score = 0
       
-      // Category preference score
-      const categoryScore = categoryPreferences.get(product.category) || 0
-      score += categoryScore * 0.4
-      
-      // Price similarity score
-      if (priceRange.count > 0) {
-        const priceDiff = Math.abs(product.price - priceRange.avg)
-        const priceScore = 1 / (1 + priceDiff / priceRange.avg)
-        score += priceScore * 0.3
+      // If user has NO interactions, provide basic trending score
+      if (userInteractions.size === 0) {
+        // Fallback: score based on general product appeal
+        score += Math.random() * 0.5 // Random trending factor
+        
+        // Prefer mid-range prices when no user data
+        if (product.price >= 50 && product.price <= 300) {
+          score += 0.3
+        }
+      } else {
+        // Category preference score
+        const categoryScore = categoryPreferences.get(product.category) || 0
+        score += categoryScore * 0.4
+        
+        // Price similarity score
+        if (priceRange.count > 0) {
+          const priceDiff = Math.abs(product.price - priceRange.avg)
+          const priceScore = 1 / (1 + priceDiff / priceRange.avg)
+          score += priceScore * 0.3
+        }
+        
+        // Find similar products user has interacted with
+        let maxSimilarity = 0
+        userInteractions.forEach((interaction, interactedProductId) => {
+          const interactedProduct = products.find(p => p.id === interactedProductId)
+          if (interactedProduct) {
+            const engagementScore = calculateEngagementScore(interaction)
+            
+            let similarity = 0
+            if (product.category === interactedProduct.category) similarity += 0.5
+            
+            // Tag overlap
+            if (product.tags && interactedProduct.tags) {
+              const commonTags = product.tags.filter(tag => interactedProduct.tags?.includes(tag))
+              similarity += commonTags.length * 0.1
+            }
+            
+            similarity *= engagementScore
+            maxSimilarity = Math.max(maxSimilarity, similarity)
+          }
+        })
+        
+        score += maxSimilarity * 0.3
       }
       
-      // Find similar products user has interacted with
-      let maxSimilarity = 0
-      userInteractions.forEach((interaction, interactedProductId) => {
-        const interactedProduct = products.find(p => p.id === interactedProductId)
-        if (interactedProduct) {
-          const engagementScore = calculateEngagementScore(interaction)
-          
-          let similarity = 0
-          if (product.category === interactedProduct.category) similarity += 0.5
-          
-          // Tag overlap
-          if (product.tags && interactedProduct.tags) {
-            const commonTags = product.tags.filter(tag => interactedProduct.tags?.includes(tag))
-            similarity += commonTags.length * 0.1
-          }
-          
-          similarity *= engagementScore
-          maxSimilarity = Math.max(maxSimilarity, similarity)
-        }
-      })
-      
-      score += maxSimilarity * 0.3
       scores.set(product.id, score)
     }
   })
@@ -517,23 +529,35 @@ export function contextAwareRules(
     if (!userInteractions.has(product.id)) {
       let score = 0
       
-      // Price-based scoring (match user's price range)
-      if (contextFactors.priceCount > 0) {
-        const priceDiff = Math.abs(product.price - contextFactors.avgPrice)
-        const priceScore = 1 / (1 + priceDiff / contextFactors.avgPrice)
-        score += priceScore * 0.3
-      }
+      // If user has NO interactions at all, use general trending/popular approach
+      const hasNoInteractions = userInteractions.size === 0
       
-      // Premium product boost for high-engagement users
-      if (contextFactors.hasHighEngagement && product.price > 100) {
-        score += 0.25
-      }
-      
-      // Boost products in checkout price range
-      if (contextFactors.hasCheckoutBehavior) {
-        if (product.price >= contextFactors.avgPrice * 0.8 && 
-            product.price <= contextFactors.avgPrice * 1.2) {
-          score += 0.3
+      if (hasNoInteractions) {
+        // Fallback: recommend mid-range popular products
+        if (product.price >= 50 && product.price <= 500) {
+          score += 0.5
+        }
+        // Boost based on category diversity
+        score += Math.random() * 0.3
+      } else {
+        // Price-based scoring (match user's price range)
+        if (contextFactors.priceCount > 0) {
+          const priceDiff = Math.abs(product.price - contextFactors.avgPrice)
+          const priceScore = 1 / (1 + priceDiff / contextFactors.avgPrice)
+          score += priceScore * 0.3
+        }
+        
+        // Premium product boost for high-engagement users
+        if (contextFactors.hasHighEngagement && product.price > 100) {
+          score += 0.25
+        }
+        
+        // Boost products in checkout price range
+        if (contextFactors.hasCheckoutBehavior) {
+          if (product.price >= contextFactors.avgPrice * 0.8 && 
+              product.price <= contextFactors.avgPrice * 1.2) {
+            score += 0.3
+          }
         }
       }
       
@@ -556,6 +580,44 @@ export function contextAwareRules(
       // Ratings boost (if available)
       if (userBehavior.ratings && userBehavior.ratings[product.id]) {
         score += userBehavior.ratings[product.id] * 0.15
+      }
+      
+      // Search query matching (boost products matching user's search intent)
+      if (userBehavior.searchQueries && userBehavior.searchQueries.length > 0) {
+        const searchTerms = userBehavior.searchQueries.join(' ').toLowerCase()
+        const productText = `${product.name} ${product.description || ''} ${product.tags?.join(' ') || ''} ${product.category}`.toLowerCase()
+        
+        // Check for exact word matches
+        const queryWords = searchTerms.split(/\s+/).filter(w => w.length > 2) // filter short words
+        let matchCount = 0
+        
+        queryWords.forEach(word => {
+          if (productText.includes(word)) {
+            matchCount++
+          }
+        })
+        
+        // Boost score based on match percentage
+        if (matchCount > 0) {
+          const matchPercentage = matchCount / queryWords.length
+          score += matchPercentage * 0.5 // up to +0.5 for perfect match
+        }
+      }
+      
+      // Session duration boost (longer sessions indicate more engaged users)
+      if (userBehavior.sessionDuration) {
+        // Normalize session duration (30 min = 1800 seconds = full engagement)
+        const engagementLevel = Math.min(userBehavior.sessionDuration / 1800, 1)
+        
+        // Highly engaged users get boost for premium/quality products
+        if (engagementLevel > 0.5 && product.price > 50) {
+          score += engagementLevel * 0.2
+        }
+        
+        // Less engaged users (quick browsers) prefer lower prices
+        if (engagementLevel < 0.3 && product.price < 100) {
+          score += 0.15
+        }
       }
       
       // Random trending factor (normalized)
@@ -587,18 +649,18 @@ export function generateRecommendations(
   let userBasedScores = new Map<string, number>()
   let categoryPopularityScores = new Map<string, number>()
   
-  if (allUserBehaviors && allUserBehaviors.length > 1) {
+  if (allUserBehaviors && allUserBehaviors.length >= 1) {
     userBasedScores = userBasedCollaborativeFiltering(products, userBehavior, allUserBehaviors)
     categoryPopularityScores = categoryPopularityScore(products, userBehavior, allUserBehaviors)
   }
 
   // Combine with weights
-  // If we have multiple users: User-Based (25%), Collaborative (20%), Content (20%), Context (20%), Popularity (15%)
+  // If we have other users: User-Based (25%), Collaborative (20%), Content (20%), Context (20%), Popularity (15%)
   // If single user: Collaborative (40%), Content (30%), Context (30%)
   const finalScores = new Map<string, number>()
   const scoreBreakdown = new Map<string, any>()
 
-  const hasMultipleUsers = allUserBehaviors && allUserBehaviors.length > 1
+  const hasMultipleUsers = allUserBehaviors && allUserBehaviors.length >= 1
 
   products.forEach((product) => {
     const collabScore = collaborativeScores.get(product.id) || 0

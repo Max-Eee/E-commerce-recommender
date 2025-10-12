@@ -108,13 +108,13 @@ export async function generateRecommendationExplanation(
     
     // Build user context
     const userContext: string[] = []
-    if (userBehavior.viewedProducts?.length > 0) {
+    if (userBehavior.viewedProducts && userBehavior.viewedProducts.length > 0) {
       userContext.push(`viewed ${userBehavior.viewedProducts.length} products`)
     }
-    if (userBehavior.cartItems?.length > 0) {
+    if (userBehavior.cartItems && userBehavior.cartItems.length > 0) {
       userContext.push(`has ${userBehavior.cartItems.length} items in cart`)
     }
-    if (userBehavior.purchasedProducts?.length > 0) {
+    if (userBehavior.purchasedProducts && userBehavior.purchasedProducts.length > 0) {
       userContext.push(`purchased ${userBehavior.purchasedProducts.length} products`)
     }
     
@@ -198,11 +198,146 @@ Generate ONE line explanation:`
 }
 
 /**
+ * Lightweight function to extract user IDs from natural language without full parsing
+ * This avoids duplicate heavy AI calls for product parsing
+ */
+export async function parseUserIdsOnly(userBehaviorInput: string): Promise<string[]> {
+  try {
+    // First, try to detect from JSON if it's valid JSON
+    try {
+      const parsed = JSON.parse(userBehaviorInput)
+      if (Array.isArray(parsed)) {
+        return parsed.map((u: any) => u.userId).filter(Boolean)
+      } else if (parsed.userId) {
+        return [parsed.userId]
+      }
+    } catch {
+      // Not JSON, continue with AI parsing
+    }
+
+    // Use lightweight AI call to extract just user IDs
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
+    
+    const prompt = `Extract ONLY the user IDs from this natural language text.
+Return a JSON array of user ID strings, nothing else.
+
+Example input: "Main user (user123) did this. Another user (user456) did that."
+Example output: ["user123", "user456"]
+
+If only one user, return array with one element: ["user123"]
+If no users mentioned, return empty array: []
+
+TEXT TO ANALYZE:
+${userBehaviorInput}
+
+RESPOND WITH ONLY THE JSON ARRAY:`
+
+    const result = await model.generateContent(prompt)
+    const text = result.response.text().trim()
+    
+    // Clean markdown code blocks if present
+    const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    
+    const userIds = JSON.parse(cleaned)
+    return Array.isArray(userIds) ? userIds : []
+  } catch (error) {
+    console.error('Error extracting user IDs:', error)
+    return []
+  }
+}
+
+/**
+ * Try to parse JSON manually first, fall back to LLM if it fails
+ */
+export async function parseWithFallback(
+  input: string,
+  type: 'products' | 'userBehavior' | 'allUserBehaviors',
+  options?: { skipImage?: boolean }
+): Promise<any> {
+  console.log(`\n🔄 Attempting to parse ${type}...`)
+  
+  // Step 1: Try manual JSON parsing
+  try {
+    const parsed = JSON.parse(input)
+    
+    // Validate the structure
+    let isValid = false
+    
+    if (type === 'products') {
+      isValid = Array.isArray(parsed) && parsed.length > 0 && 
+                parsed.every((p: any) => p.id && p.name && p.category && typeof p.price === 'number')
+      
+      if (isValid) {
+        console.log(`   ✅ Manual parsing successful! Found ${parsed.length} products`)
+        
+        // Add images using Unsplash
+        console.log('\n🖼️  Fetching Unsplash images for products...')
+        const productsWithImages = await Promise.all(
+          parsed.map(async (product: any) => {
+            if (!product.image) {
+              const imageUrl = await fetchUnsplashImage(product.name, product.category)
+              return { ...product, image: imageUrl }
+            }
+            return product
+          })
+        )
+        
+        return productsWithImages
+      }
+    } else if (type === 'userBehavior') {
+      isValid = parsed && typeof parsed === 'object' && 
+                Array.isArray(parsed.viewedProducts) &&
+                Array.isArray(parsed.cartItems) &&
+                Array.isArray(parsed.purchasedProducts)
+      
+      if (isValid) {
+        console.log('   ✅ Manual parsing successful! User behavior validated')
+        return parsed
+      }
+    } else if (type === 'allUserBehaviors') {
+      console.log(`   🔍 Validating allUserBehaviors structure...`)
+      console.log(`      - Is Array: ${Array.isArray(parsed)}`)
+      console.log(`      - Length: ${Array.isArray(parsed) ? parsed.length : 'N/A'}`)
+      
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const validationResults = parsed.map((ub: any, index: number) => ({
+          index,
+          hasUserId: !!ub.userId,
+          hasViewedProducts: Array.isArray(ub.viewedProducts),
+          userId: ub.userId
+        }))
+        console.log(`      - Validation per user:`, JSON.stringify(validationResults, null, 2))
+        
+        isValid = parsed.every((ub: any) => ub.userId && Array.isArray(ub.viewedProducts))
+      }
+      
+      if (isValid) {
+        console.log(`   ✅ Manual parsing successful! Found ${parsed.length} user behaviors`)
+        return parsed
+      } else {
+        console.log(`   ❌ Validation failed for allUserBehaviors structure`)
+      }
+    }
+    
+    // If structure is invalid but JSON is valid, log warning and fall through to LLM
+    console.log('   ⚠️  JSON structure invalid. Falling back to LLM parsing...')
+  } catch (error) {
+    // JSON parsing failed - this is expected for natural language input
+    console.log('   ℹ️  Not valid JSON. Using LLM parsing...')
+  }
+  
+  // Step 2: Fall back to LLM parsing
+  console.log('   🤖 Parsing with AI...')
+  return await parseNaturalLanguageToJSON(input, type, options)
+}
+
+/**
  * Parse natural language input to JSON format using LLM
  */
 export async function parseNaturalLanguageToJSON(
   input: string,
-  type: 'products' | 'userBehavior' | 'allUserBehaviors'
+  type: 'products' | 'userBehavior' | 'allUserBehaviors',
+  options?: { skipImage?: boolean }
 ): Promise<any> {
   try {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
@@ -324,7 +459,17 @@ CRITICAL RULES:
    - viewCount: 1-5
    - Set booleans based on actions described
 
-6. **DO NOT INCLUDE**: firstName, lastName, email, address, or any PII fields
+6. **Contextual Fields (OPTIONAL but enhance recommendations)**:
+   - searchQueries: Extract any search terms mentioned (e.g., "searched for wireless headphones" → ["wireless headphones"])
+     * Used to boost products matching search intent (up to +0.5 score)
+   - sessionDuration: Total browsing time in SECONDS (e.g., "browsed for 15 minutes" → 900)
+     * Used to identify engagement level: >30min = highly engaged (prefers premium), <5min = quick browser (prefers budget)
+   - deviceType: "desktop", "mobile", or "tablet" (e.g., "on their phone" → "mobile")
+     * Mobile users get boost for mid-range products ($20-$100)
+   - timeOfDay: "morning", "afternoon", "evening", or "night" (e.g., "late evening shopping" → "evening")
+     * Evening users get boost for premium items (>$100)
+
+7. **DO NOT INCLUDE**: firstName, lastName, email, address, or any PII fields
 
 INPUT TEXT:
 ${input}
@@ -341,8 +486,11 @@ ENHANCED FORMAT (if detailed actions mentioned):
   "viewedProducts": ["string"] (array of product IDs - REQUIRED, can be empty),
   "purchasedProducts": ["string"] (array of product IDs - REQUIRED, can be empty),
   "cartItems": ["string"] (array of product IDs - REQUIRED, can be empty),
-  "searchQueries": ["string"] (OPTIONAL),
-  "ratings": {} (OPTIONAL),
+  "searchQueries": ["string"] (OPTIONAL - array of search terms used, e.g., ["wireless headphones", "bluetooth"]),
+  "ratings": {} (OPTIONAL object),
+  "sessionDuration": number (OPTIONAL - total session time in SECONDS, e.g., 900 for 15min, 1800 for 30min),
+  "deviceType": "string" (OPTIONAL - "desktop", "mobile", or "tablet"),
+  "timeOfDay": "string" (OPTIONAL - "morning", "afternoon", "evening", or "night"),
   "productInteractions": {
     "product-id": {
       "productId": "string",
@@ -385,6 +533,50 @@ SIMPLE FORMAT (if only basic actions mentioned):
   "ratings": {}
 }
 
+🚨 CRITICAL: PRODUCT ID MATCHING RULES 🚨
+
+**YOU MUST USE ONLY THE EXACT PRODUCT IDs PROVIDED IN THE INPUT**
+
+The input will contain a line like:
+"AVAILABLE PRODUCT IDs TO USE: electronics-1, electronics-2, furniture-1, furniture-2"
+
+**RULES:**
+1. **ONLY use IDs from the AVAILABLE PRODUCT IDs list**
+2. **DO NOT create new IDs like "laptop-1", "keyboard-1", "monitor-1"**
+3. **DO NOT invent product IDs**
+4. **Map product descriptions to available IDs:**
+   - If user "viewed a laptop" → find electronics ID from available list (e.g., "electronics-1")
+   - If user "added furniture to cart" → use furniture IDs from list (e.g., "furniture-1")
+   - If user "purchased a keyboard" → use an electronics ID from the list
+5. **Use the same ID in ALL arrays if product is mentioned multiple times:**
+   - If "electronics-1" was viewed AND added to cart → both viewedProducts and cartItems should contain "electronics-1"
+
+**EXAMPLE MAPPING:**
+Available IDs: electronics-1, electronics-2, furniture-1, furniture-2
+
+User behavior description: "User viewed a laptop (5 times, 180 seconds), added it to cart (3 times), also viewed a keyboard (3 times), purchased a mouse, and has a monitor in cart"
+
+CORRECT OUTPUT:
+{
+  "viewedProducts": ["electronics-1", "electronics-2", "electronics-3", "electronics-4"],
+  "cartItems": ["electronics-4", "electronics-1"],
+  "purchasedProducts": ["electronics-5"],
+  "productInteractions": {
+    "electronics-1": { "productId": "electronics-1", ... }, // laptop
+    "electronics-2": { "productId": "electronics-2", ... }, // keyboard
+    "electronics-5": { "productId": "electronics-5", ... }  // mouse
+  }
+}
+
+❌ WRONG OUTPUT (DO NOT DO THIS):
+{
+  "viewedProducts": ["laptop-1", "keyboard-1"],  ← WRONG! These IDs don't exist!
+  "cartItems": ["monitor-1", "laptop-1"],        ← WRONG! Made-up IDs!
+  "productInteractions": {
+    "laptop-1": {...}                            ← WRONG! Use available IDs!
+  }
+}
+
 CRITICAL RULES:
 
 0. **MANDATORY FIELDS (NEVER OMIT):**
@@ -400,14 +592,12 @@ CRITICAL RULES:
    - **MUST generate realistic sample interactions**
    - If asked for "10 sample behaviors for user1":
      * Create 10 different product interactions
-     * viewedProducts: array with 3-5 product IDs
-     * cartItems: array with 2-3 product IDs
-     * purchasedProducts: array with 1-2 product IDs
-   - Use realistic product IDs from available products
-   - Example: ["electronics-1", "furniture-2", "clothing-3"]
+     * viewedProducts: array with 3-5 product IDs FROM AVAILABLE LIST
+     * cartItems: array with 2-3 product IDs FROM AVAILABLE LIST
+     * purchasedProducts: array with 1-2 product IDs FROM AVAILABLE LIST
+   - **USE ONLY IDs FROM THE AVAILABLE PRODUCT IDs LIST**
    - **NEVER return empty arrays when sample data is requested**
 
-1. **Action Mapping:**
 1. **Action Mapping:**
    - "added to cart/in cart" → cartItems array + cartActions.addedToCart (timestamp)
    - "removed from cart" → cartActions.removedFromCart (timestamp)
@@ -424,12 +614,22 @@ CRITICAL RULES:
    - "read description" → descriptionRead: true
    - "selected size/color" → sizeSelected/colorSelected: true
 
-4. **Validation**:
-   - Product IDs must match catalog format (e.g., "electronics-1", "furniture-2")
+4. **Contextual Fields (OPTIONAL but enhance recommendations)**:
+   - searchQueries: Extract any search terms mentioned (e.g., "searched for wireless headphones" → ["wireless headphones"])
+     * Algorithm uses this to boost products matching search intent (up to +0.5 score)
+   - sessionDuration: Total browsing time in SECONDS (e.g., "browsed for 15 minutes" → 900)
+     * Algorithm uses this to identify engagement: >30min = highly engaged (prefers premium $50+), <5min = quick browser (prefers budget <$100)
+   - deviceType: "desktop", "mobile", or "tablet" (e.g., "on their phone" → "mobile")
+     * Algorithm boosts mid-range products ($20-$100) for mobile users
+   - timeOfDay: "morning", "afternoon", "evening", or "night" (e.g., "late evening shopping" → "evening")
+     * Algorithm boosts premium items (>$100) for evening users
+
+5. **Validation**:
+   - **Product IDs MUST be from the AVAILABLE PRODUCT IDs list ONLY**
    - At least 1 product in cartItems OR purchasedProducts for user1
    - All arrays must exist (can be empty [])
 
-5. **DO NOT INCLUDE**: name, email, address, phone, or any PII fields
+6. **DO NOT INCLUDE**: name, email, address, phone, or any PII fields
 
 INPUT TEXT:
 ${input}
@@ -482,8 +682,13 @@ OUTPUT: Return ONLY valid JSON with EXACTLY these fields. No markdown, no code b
       }
     }
     
-    // If parsing products, fetch Unsplash images for each product
+    // If parsing products, fetch Unsplash images for each product unless skipImage is true
     if (type === 'products' && Array.isArray(parsed)) {
+      if (options?.skipImage) {
+        console.log('\n🖼️  Skipping Unsplash image fetch for detection (skipImage=true)')
+        return parsed
+      }
+
       console.log('\n🖼️  Fetching Unsplash images for products...')
       const productsWithImages = await Promise.all(
         parsed.map(async (product: any) => {

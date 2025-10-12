@@ -6,11 +6,9 @@ import AllProductsGrid from "../components/all-products-grid"
 const StoreTemplate = ({
   sortBy,
   page,
-  countryCode,
 }: {
   sortBy?: SortOptions
   page?: string
-  countryCode: string
 }) => {
   const sort = sortBy || "price_asc"
 
@@ -25,14 +23,12 @@ const StoreTemplate = ({
       </div>
       
       {/* Browse All Section with Sticky Sort */}
-      <div className="flex small:flex-row flex-col small:items-start gap-4 small:gap-8">
-        {/* Sticky Sort Panel - Hidden on mobile, shown as dropdown or moved above grid */}
-        <div className="small:block">
-          <RefinementList sortBy={sort} />
-        </div>
+      <div className="flex flex-col small:flex-row small:items-start gap-0 small:gap-6">
+        {/* Sticky Sort Panel */}
+        <RefinementList sortBy={sort} />
         
         {/* Products Grid */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="mb-6 small:mb-8 pb-4 small:pb-6 border-b border-ui-border-base">
             <p className="text-xs text-ui-fg-muted uppercase tracking-wide mb-1 small:mb-2">Browse All</p>
             <h1 className="text-xl small:text-2xl font-normal text-ui-fg-base" data-testid="store-page-title">

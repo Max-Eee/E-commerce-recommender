@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateRecommendations } from '../../../lib/recommendation-engine'
-import { generateRecommendationExplanation, parseNaturalLanguageToJSON, normalizeJSONInput } from '../../../lib/gemini-service'
+import { generateRecommendationExplanation, parseWithFallback, normalizeJSONInput } from '../../../lib/gemini-service'
 import { Product, UserBehavior, Recommendation } from '../../../types/recommendation'
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { productsInput, userBehaviorInput, allUserBehaviorsInput, inputType } = body
+  const body = await request.json()
+  const { productsInput, userBehaviorInput, allUserBehaviorsInput, inputType, targetUserId, parsedProducts: parsedProductsFromClient, parsedUserBehavior: parsedUserBehaviorFromClient } = body
 
     console.log('\n' + '='.repeat(100))
     console.log('🚀 RECOMMENDATION ENGINE - PROCESSING STARTED')
     console.log('='.repeat(100))
     console.log(`⏰ Timestamp: ${new Date().toISOString()}`)
     console.log(`📝 Input Type: ${inputType}`)
+    if (targetUserId) {
+      console.log(`🎯 Target User ID: ${targetUserId}`)
+    }
     console.log('='.repeat(100))
 
     // STEP 1: Generate Product Catalog using LLM
@@ -23,8 +26,14 @@ export async function POST(request: NextRequest) {
     
     let products: Product[] = []
     
-    console.log('\n🤖 Parsing products with LLM...')
-    products = await parseNaturalLanguageToJSON(productsInput, 'products')
+    console.log('\n🤖 Parsing products...')
+    if (parsedProductsFromClient) {
+      console.log('   ℹ️  Using parsedProducts provided by frontend (detection step)')
+      // Ensure images exist - use parseWithFallback on the JSON string which will perform manual parse and image enrichment
+      products = await parseWithFallback(JSON.stringify(parsedProductsFromClient), 'products')
+    } else {
+      products = await parseWithFallback(productsInput, 'products')
+    }
     
     console.log('✅ Product Catalog Generated:')
     console.log(`   Total Products: ${products.length}`)
@@ -43,20 +52,98 @@ export async function POST(request: NextRequest) {
     console.log(userBehaviorInput.substring(0, 200) + (userBehaviorInput.length > 200 ? '...' : ''))
     
     let userBehavior: UserBehavior
+    let allUserBehaviors: UserBehavior[] | undefined
     
-    console.log('\n🤖 Parsing user behavior with LLM...')
+    console.log('\n🤖 Parsing user behavior...')
     console.log('📝 Available Product IDs for validation:', products.map(p => p.id).join(', '))
     
-    // Enhance user behavior input with available product IDs
-    const enhancedInput = `${userBehaviorInput}
+    // First, try to detect if it's an array or single object
+    let parseType: 'userBehavior' | 'allUserBehaviors' = 'userBehavior'
+    let isValidJSON = false
+    let inputToUse = userBehaviorInput
+    
+    try {
+      const testParse = JSON.parse(userBehaviorInput)
+      isValidJSON = true
+      if (Array.isArray(testParse)) {
+        parseType = 'allUserBehaviors'
+        console.log('   📊 Detected array format - parsing as multiple users')
+      } else {
+        console.log('   👤 Detected object format - parsing as single user')
+      }
+    } catch {
+      // Not valid JSON, will use LLM to determine
+      console.log('   🤖 Natural language detected - will let AI determine format')
+      // Only enhance input with product IDs if it's natural language (not valid JSON)
+      inputToUse = `${userBehaviorInput}
 
 AVAILABLE PRODUCT IDs TO USE: ${products.map(p => p.id).join(', ')}
 (Use these IDs for viewedProducts, cartItems, and purchasedProducts arrays)`
+    }
     
-    userBehavior = await parseNaturalLanguageToJSON(enhancedInput, 'userBehavior')
+    let parsedUserBehavior: any
+    if (parsedUserBehaviorFromClient) {
+      console.log('   ℹ️  Using parsedUserBehavior provided by frontend (detection step)')
+      parsedUserBehavior = parsedUserBehaviorFromClient
+    } else {
+      parsedUserBehavior = await parseWithFallback(inputToUse, parseType)
+    }
+    
+    // Check if we got multiple users (array) or single user (object)
+    if (Array.isArray(parsedUserBehavior)) {
+      console.log(`\n📊 Multiple users detected: ${parsedUserBehavior.length} users`)
+      
+      // Find the target user
+      if (targetUserId) {
+        const targetUser = parsedUserBehavior.find(u => u.userId === targetUserId)
+        if (!targetUser) {
+          throw new Error(`Target user "${targetUserId}" not found in provided user behaviors`)
+        }
+        userBehavior = targetUser
+        // All other users become the allUserBehaviors (need to normalize them too)
+        allUserBehaviors = parsedUserBehavior
+          .filter(u => u.userId !== targetUserId)
+          .map(ub => ({
+            userId: ub.userId || `user-${Math.random()}`,
+            viewedProducts: Array.isArray(ub.viewedProducts) ? ub.viewedProducts : [],
+            purchasedProducts: Array.isArray(ub.purchasedProducts) ? ub.purchasedProducts : [],
+            cartItems: Array.isArray(ub.cartItems) ? ub.cartItems : [],
+            searchQueries: Array.isArray(ub.searchQueries) ? ub.searchQueries : [],
+            ratings: ub.ratings || {},
+            productInteractions: ub.productInteractions,
+            sessionDuration: ub.sessionDuration,
+            deviceType: ub.deviceType,
+            timeOfDay: ub.timeOfDay,
+          }))
+        console.log(`✅ Target user selected: ${targetUserId}`)
+        console.log(`📊 Other users for collaborative filtering: ${allUserBehaviors.length}`)
+      } else {
+        // No target specified, use first user
+        userBehavior = parsedUserBehavior[0]
+        allUserBehaviors = parsedUserBehavior
+          .slice(1)
+          .map(ub => ({
+            userId: ub.userId || `user-${Math.random()}`,
+            viewedProducts: Array.isArray(ub.viewedProducts) ? ub.viewedProducts : [],
+            purchasedProducts: Array.isArray(ub.purchasedProducts) ? ub.purchasedProducts : [],
+            cartItems: Array.isArray(ub.cartItems) ? ub.cartItems : [],
+            searchQueries: Array.isArray(ub.searchQueries) ? ub.searchQueries : [],
+            ratings: ub.ratings || {},
+            productInteractions: ub.productInteractions,
+            sessionDuration: ub.sessionDuration,
+            deviceType: ub.deviceType,
+            timeOfDay: ub.timeOfDay,
+          }))
+        console.log(`⚠️ No target user specified, using first user: ${userBehavior.userId}`)
+      }
+    } else {
+      // Single user object
+      userBehavior = parsedUserBehavior
+      console.log(`\n👤 Single user detected: ${userBehavior.userId}`)
+    }
     
     // Log what LLM returned before normalization
-    console.log('🔍 Raw LLM Output:')
+    console.log('🔍 Raw LLM Output for main user:')
     console.log(`   Viewed: ${userBehavior.viewedProducts?.length || 0}`)
     console.log(`   Cart: ${userBehavior.cartItems?.length || 0}`)
     console.log(`   Purchased: ${userBehavior.purchasedProducts?.length || 0}`)
@@ -105,17 +192,15 @@ AVAILABLE PRODUCT IDs TO USE: ${products.map(p => p.id).join(', ')}
     console.log(JSON.stringify(userBehavior, null, 2))
     console.log('-'.repeat(100))
 
-    // STEP 3: Parse All Users Behaviors (if provided)
-    let allUserBehaviors: UserBehavior[] | undefined
-    
-    if (allUserBehaviorsInput) {
+    // STEP 3: Parse All Users Behaviors (if provided and not already parsed from Step 2)
+    if (allUserBehaviorsInput && !allUserBehaviors) {
       console.log('\n👥 STEP 3: GENERATING ALL USERS BEHAVIORS')
       console.log('-'.repeat(100))
       console.log('🔤 Raw All Users Input:')
       console.log(allUserBehaviorsInput.substring(0, 200) + (allUserBehaviorsInput.length > 200 ? '...' : ''))
       
-      console.log('\n🤖 Parsing all users behaviors with LLM...')
-      allUserBehaviors = await parseNaturalLanguageToJSON(allUserBehaviorsInput, 'allUserBehaviors')
+      console.log('\n🤖 Parsing all users behaviors...')
+      allUserBehaviors = await parseWithFallback(allUserBehaviorsInput, 'allUserBehaviors')
       
       // Normalize all user behaviors
       if (allUserBehaviors) {
@@ -178,10 +263,19 @@ AVAILABLE PRODUCT IDs TO USE: ${products.map(p => p.id).join(', ')}
     console.log('\n🎯 STEP 5: GENERATING RECOMMENDATIONS WITH HYBRID ALGORITHM')
     console.log('-'.repeat(100))
     console.log(`📊 Processing for user: ${userBehavior.userId}`)
-    if (allUserBehaviors && allUserBehaviors.length > 1) {
-      console.log(`🤝 Using collaborative filtering with ${allUserBehaviors.length} users`)
+    console.log(`   🎯 Target User: ${userBehavior.userId}`)
+    console.log(`   📝 Target User Data:`)
+    console.log(`      - Viewed: ${userBehavior.viewedProducts?.length || 0} products`)
+    console.log(`      - Cart: ${userBehavior.cartItems?.length || 0} items`)
+    console.log(`      - Purchased: ${userBehavior.purchasedProducts?.length || 0} items`)
+    
+    if (allUserBehaviors && allUserBehaviors.length > 0) {
+      console.log(`   🤝 Collaborative filtering enabled with ${allUserBehaviors.length} other users:`)
+      allUserBehaviors.forEach((ub, i) => {
+        console.log(`      ${i + 1}. ${ub.userId} - Viewed: ${ub.viewedProducts?.length || 0}, Cart: ${ub.cartItems?.length || 0}, Purchased: ${ub.purchasedProducts?.length || 0}`)
+      })
     } else {
-      console.log(`👤 Single user mode (no collaborative data)`)
+      console.log(`   👤 Single user mode (no collaborative data)`)
     }
     console.log('\n🔄 Running recommendation algorithms...')
     
@@ -286,9 +380,9 @@ AVAILABLE PRODUCT IDs TO USE: ${products.map(p => p.id).join(', ')}
     console.log(`   Products: ${products.length}`)
     console.log(`   User Behavior:`)
     console.log(`      User ID: ${userBehavior.userId}`)
-    console.log(`      Viewed Products: ${userBehavior.viewedProducts.length} [${userBehavior.viewedProducts.join(', ')}]`)
-    console.log(`      Cart Items: ${userBehavior.cartItems.length} [${userBehavior.cartItems.join(', ')}]`)
-    console.log(`      Purchased Products: ${userBehavior.purchasedProducts.length} [${userBehavior.purchasedProducts.join(', ')}]`)
+    console.log(`      Viewed Products: ${userBehavior.viewedProducts?.length || 0} [${userBehavior.viewedProducts?.join(', ') || 'none'}]`)
+    console.log(`      Cart Items: ${userBehavior.cartItems?.length || 0} [${userBehavior.cartItems?.join(', ') || 'none'}]`)
+    console.log(`      Purchased Products: ${userBehavior.purchasedProducts?.length || 0} [${userBehavior.purchasedProducts?.join(', ') || 'none'}]`)
     console.log('='.repeat(100) + '\n')
 
     return NextResponse.json({

@@ -52,9 +52,9 @@ export default function RecommendationsDisplay() {
 
   // Get products that were interacted with
   const interactedProductIds = new Set([
-    ...userBehavior.viewedProducts,
-    ...userBehavior.purchasedProducts,
-    ...userBehavior.cartItems,
+    ...(userBehavior.viewedProducts || []),
+    ...(userBehavior.purchasedProducts || []),
+    ...(userBehavior.cartItems || []),
   ])
 
   const browsedProducts = products.filter(p => interactedProductIds.has(p.id))
@@ -89,31 +89,6 @@ export default function RecommendationsDisplay() {
       </div>
 
       <div className="content-container py-12">
-        {/* User Activity Summary - Minimal */}
-        <div className="bg-ui-bg-subtle border border-ui-border-base p-6 mb-12">
-          <p className="text-xs text-ui-fg-muted uppercase tracking-wide mb-4">Activity Summary</p>
-          <div className="grid grid-cols-3 gap-6">
-            <div className="text-center border-r border-ui-border-base last:border-r-0">
-              <p className="text-2xl font-medium text-ui-fg-base mb-1">
-                {userBehavior.viewedProducts.length}
-              </p>
-              <p className="text-xs text-ui-fg-subtle">Viewed</p>
-            </div>
-            <div className="text-center border-r border-ui-border-base last:border-r-0">
-              <p className="text-2xl font-medium text-ui-fg-base mb-1">
-                {userBehavior.cartItems.length}
-              </p>
-              <p className="text-xs text-ui-fg-subtle">In Cart</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-medium text-ui-fg-base mb-1">
-                {userBehavior.purchasedProducts.length}
-              </p>
-              <p className="text-xs text-ui-fg-subtle">Purchased</p>
-            </div>
-          </div>
-        </div>
-
         {/* For You Section - Featured Recommendations */}
         <div className="mb-16">
           <div className="mb-8 pb-6 border-b border-ui-border-base">

@@ -70,6 +70,12 @@ export const retrieveRegion = async (id: string) => {
 
 const regionMap = new Map<string, HttpTypes.StoreRegion>()
 
+const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "us"
+
+export const getDefaultRegion = async () => {
+  return getRegion(DEFAULT_REGION)
+}
+
 export const getRegion = async (countryCode: string) => {
   try {
     if (regionMap.has(countryCode)) {

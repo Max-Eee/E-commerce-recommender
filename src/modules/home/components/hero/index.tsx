@@ -62,7 +62,7 @@ const Hero = () => {
             Intelligent Product Recommendations
           </h1>
           <p className="text-sm md:text-lg text-ui-fg-subtle mb-6 md:mb-8 leading-relaxed max-w-[260px] sm:max-w-xs md:max-w-lg">
-            Hybrid AI engine with collaborative filtering and personalized explanations.
+            Hybrid recommendation engine with collaborative filtering and personalized explanations.
           </p>
           <div className="hidden md:flex flex-wrap gap-3 text-xs text-ui-fg-muted">
             <span className="flex items-center gap-1.5 px-3 py-1.5 border border-ui-border-base rounded-md">
