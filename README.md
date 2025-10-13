@@ -408,24 +408,24 @@ finalScore =
 
 ### 🚀 **Key Advantages**
 
-1. `**Hybrid Approach**` - Combines strengths of all algorithms, mitigates weaknesses
-2. `**Cold Start Resilient**` - Works even with zero user data (trending + contextual)
-3. `**Engagement-Weighted**` - Purchases matter more than views (behavioral economics)
-4. `**Context-Aware**` - Considers time, device, session, search intent
-5. `**Search-Enhanced**` - Matches user's explicit search queries 🆕
-6. `**Session-Intelligent**` - Adapts to user engagement level 🆕
-7. `**Multi-User Learning**` - Leverages collective intelligence when available
-8. `**Scalable**` - Efficient algorithms (Map/Set data structures, top-N selection)
-9. `**Type-Safe**` - Full TypeScript support with strict typing
-10. `**Explainable**` - Each score includes breakdown showing contribution of each algorithm
+1. **`Hybrid Approach`** - Combines strengths of all algorithms, mitigates weaknesses
+2. **Cold Start Resilient`** - Works even with zero user data (trending + contextual)
+3. **`Engagement-Weighted`** - Purchases matter more than views (behavioral economics)
+4. **`Context-Aware`** - Considers time, device, session, search intent
+5. **`Search-Enhanced`** - Matches user's explicit search queries 🆕
+6. **`Session-Intelligent`** - Adapts to user engagement level 🆕
+7. **`Multi-User Learning`** - Leverages collective intelligence when available
+8. **`Scalable`** - Efficient algorithms (Map/Set data structures, top-N selection)
+9. **`Type-Safe`** - Full TypeScript support with strict typing
+10. **`Explainable`** - Each score includes breakdown showing contribution of each algorithm
 
 ---
 
 ### 📈 **Performance Characteristics**
 
-- **Time Complexity:** O(U * P) where U = users, P = products
-- **Space Complexity:** O(P) for score maps
-- **Optimization:** 
+- **`Time Complexity:`** O(U * P) where U = users, P = products
+- **`Space Complexity:`** O(P) for score maps
+- **`Optimization:`** 
   - Early returns for empty data
   - Map/Set for O(1) lookups
   - Top-N selection without full sort (slice)
