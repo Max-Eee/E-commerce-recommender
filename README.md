@@ -1,4 +1,4 @@
-<img width="1727" height="237" alt="image" src="https://github.com/user-attachments/assets/45910889-5d8b-4d50-b88c-e9ecb8c5ab0b" />
+<img width="1378" height="237" alt="image (1)" src="https://github.com/user-attachments/assets/647015c8-effd-46f4-8862-24e7b00c8a70" />
 
 # <i>**E-Commerce** with Hybrid Recommendations</i>
 
