@@ -102,7 +102,7 @@ graph TB
 
 ---
 
-## � Recommendation Engine - Deep Dive
+## 🤔 Recommendation Engine - Deep Dive
 
 The hybrid recommendation engine combines **5 powerful algorithms** that work together to provide highly personalized product recommendations. The system is designed to be **dynamic and robust**, working with whatever user data is available.
 
